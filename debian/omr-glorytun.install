@@ -1,4 +1,4 @@
 debian/tun0 etc/glorytun-udp
 debian/post.sh etc/glorytun-udp
 debian/*.service lib/systemd/system
-debian/glorytun-udp-run usr/bin
+debian/glorytun-udp-run usr/local/bin

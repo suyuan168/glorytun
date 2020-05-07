@@ -29,3 +29,11 @@ DESTDIR=$(CURDIR)/debian/omr-glorytun-udp
 
 #override_dh_auto_compile:
 #	ninja -C -v build
+
+override_dh_usrlocal:
+
+override_dh_auto_install:
+	dh_auto_install
+	rm -rf "$(CURDIR)/debian/omr-glorytun/lib"
+	rm -f "$(CURDIR)/debian/omr-glorytun/usr/bin/glorytun-run"
+	rm -f "$(CURDIR)/debian/omr-glorytun/usr/bin/glorytun-setup"
