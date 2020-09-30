@@ -176,13 +176,6 @@ gt_bind(int argc, char **argv)
                persist ? "en" : "dis", tun_name);
     }
 
-    if (peer_addr.ss_family) {
-        if (mud_peer(mud, (struct sockaddr *)&peer_addr)) {
-            perror("mud_peer");
-            return 1;
-        }
-    }
-
     const int ctl_fd = ctl_create(tun_name);
 
     if (ctl_fd == -1) {
@@ -298,7 +291,15 @@ gt_bind(int argc, char **argv)
                 case CTL_NONE:
                     break;
                 case CTL_STATE:
-                    if (mud_set_state(mud, (struct sockaddr *)&req.path.addr,
+                    if (req.path.addr.ss_family) {
+                        if (!gt_get_port((struct sockaddr *)&req.path.addr))
+                            gt_set_port((struct sockaddr *)&req.path.addr, peer_port);
+                    } else {
+                        memcpy(&req.path.addr, &peer_addr, sizeof(req.path.addr));
+                    }
+                    if (mud_set_state(mud,
+                                      (struct sockaddr *)&req.path.local_addr,
+                                      (struct sockaddr *)&req.path.addr,
                                       req.path.state,
                                       req.path.rate_tx,
                                       req.path.rate_rx,
