@@ -1,8 +1,7 @@
-#include "iface.h"
 #include "common.h"
+#include "iface.h"
 
 #include <net/if.h>
-#include <stdio.h>
 #include <sys/ioctl.h>
 
 int
@@ -16,14 +15,12 @@ iface_set_mtu(const char *dev_name, size_t mtu)
     struct ifreq ifr = {
         .ifr_mtu = (int)mtu,
     };
-
     int ret = snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", dev_name);
 
     if (ret <= 0 || (size_t)ret >= sizeof(ifr.ifr_name)) {
         errno = EINVAL;
         return -1;
     }
-
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
 
     if (fd == -1)
