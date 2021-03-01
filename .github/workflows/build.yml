@@ -13,6 +13,8 @@ jobs:
           git submodule update --init --recursive
           ./sodium.sh
           make
+    - name: install dependencies
+      run: sudo apt-get install debhelper libsodium-dev meson ninja-build
 
     - name: Build Debian package
       run: dpkg-buildpackage -b -us -uc
