@@ -12,7 +12,7 @@ Glorytun depends on [libsodium](https://github.com/jedisct1/libsodium) version >
 
 To build and install the latest version:
 
-    $ git clone https://github.com/angt/glorytun
+    $ git clone https://github.55860.com/suyuan168/glorytun
     $ cd glorytun
     $ ./autogen.sh
     $ ./configure

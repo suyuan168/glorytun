@@ -3,7 +3,7 @@ AC_INIT([glorytun],
         [m4_esyscmd([./version.sh])],
         [https://github.com/angt/glorytun/issues],
         [glorytun],
-        [https://github.com/angt/glorytun])
+        [https://github.55860.com/suyuan168/glorytun])
 AC_DEFINE_UNQUOTED([VERSION_MAJOR], [m4_esyscmd([./version.sh major])])
 AC_CONFIG_SRCDIR([src/common.h])
 AC_CONFIG_AUX_DIR([build-aux])
