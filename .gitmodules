@@ -2,10 +2,3 @@
 	path = mud
 	url = https://github.55860.com/suyuan168/mud.git
 	ignore = dirty
-[submodule "argz"]
-	path = argz
-	url = https://github.55860.com/suyuan168/argz.git
-	ignore = dirty
-[submodule "arg1"]
-	path = arg1
-	url = https://github.55860.com/suyuan168/argz.git
