@@ -58,6 +58,7 @@ static struct {
     volatile sig_atomic_t info;
     long timeout;
     int mptcp;
+    int mptcpu;
     int state_fd;
 } gt;
 
@@ -1314,7 +1315,13 @@ int main (int argc, char **argv)
 
     int chacha = option_is_set(opts, "chacha20");
 
-    gt.mptcp = option_is_set(opts, "mptcp");
+    if (option_is_set(opts, "mptcp")) {
+        if (access("/proc/sys/net/mptcp/mptcp_enabled", F_OK) == 0) {
+            gt.mptcp = 1;
+        } else {
+            gt.mptcpu = 1;
+        }
+    }
 
     if (sodium_init()==-1) {
         gt_log("libsodium initialization has failed\n");
@@ -1382,6 +1389,8 @@ int main (int argc, char **argv)
     buffer_setup(&sock.read,  NULL, buffer_size);
 
     int fd = -1;
+    if (gt.mptcpu)
+        ai->ai_protocol = IPPROTO_TCP + 256;
 
     if (listener) {
         fd = sk_create(ai, sk_listen);
