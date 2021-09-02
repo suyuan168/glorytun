@@ -1,3 +1,9 @@
+omr-glorytun (0.3.4-5) unstable; urgency=medium
+
+  * Fix postinst
+
+ -- OpenMPTCProuter <contact@openmptcprouter.com>  Thu, 02 Sep 2021 20:51:36 +0200
+
 omr-glorytun (0.3.4-4) unstable; urgency=medium
 
   * Update to current upstream
