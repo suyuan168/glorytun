@@ -22,8 +22,9 @@ if ! grep -q tun /etc/modules ; then
 	echo tun >> /etc/modules
 fi
 
-systemctl enable glorytun-udp@tun0.service
-systemctl restart glorytun-udp@tun0.service
+systemctl daemon-reload 2>&1 >/dev/null
+systemctl enable glorytun-udp@tun0.service 2>&1 >/dev/null
+systemctl restart glorytun-udp@tun0.service 2>&1 >/dev/null
 
 db_stop
 
