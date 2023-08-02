@@ -189,7 +189,7 @@ static int sk_set (int fd, enum sk_opt opt, const void *val, socklen_t len)
 
     if (ret==-1) {
         int err = errno;
-        gt_log("couldn't set socket option `%s'\n", opts[opt].name);
+        //gt_log("couldn't set socket option `%s'\n", opts[opt].name);
         errno = err;
     }
 
@@ -1317,8 +1317,10 @@ int main (int argc, char **argv)
 
     if (option_is_set(opts, "mptcp")) {
         if (access("/proc/sys/net/mptcp/mptcp_enabled", F_OK) == 0) {
+            gt_log("MPTCP out-of-tree enabled\n");
             gt.mptcp = 1;
         } else {
+            gt_log("MPTCP upstream enabled\n");
             gt.mptcpu = 1;
         }
     }
