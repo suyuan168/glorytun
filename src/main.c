@@ -46,19 +46,22 @@
 #endif
 
 #define GT_MTU_MAX   (1500)
-#define GT_PKT_MAX   (32*1024)
+#define GT_PKT_MAX   (64*1024)
 #define GT_TUNR_SIZE (GT_PKT_MAX-16-2)
 #define GT_TUNW_SIZE (GT_PKT_MAX)
 
 #define GT_ABYTES    (16)
 #define GT_KEYBYTES  (32)
 
+#ifndef IPPROTO_MPTCP
+#define IPPROTO_MPTCP 262
+#endif
+
 static struct {
     volatile sig_atomic_t quit;
     volatile sig_atomic_t info;
     long timeout;
     int mptcp;
-    int mptcpu;
     int state_fd;
 } gt;
 
@@ -189,7 +192,7 @@ static int sk_set (int fd, enum sk_opt opt, const void *val, socklen_t len)
 
     if (ret==-1) {
         int err = errno;
-        //gt_log("couldn't set socket option `%s'\n", opts[opt].name);
+        gt_log("couldn't set socket option `%s'\n", opts[opt].name);
         errno = err;
     }
 
@@ -211,7 +214,7 @@ static int sk_listen (int fd, struct addrinfo *ai)
 {
     sk_set_int(fd, sk_reuseaddr, 1);
 
-    if (gt.mptcp)
+    if (gt.mptcp && access("/proc/sys/net/mptcp/mptcp_enabled", F_OK) == 0)
         sk_set_mptcp(fd);
 
     if (bind(fd, ai->ai_addr, ai->ai_addrlen)==-1) {
@@ -238,7 +241,7 @@ static int sk_connect (int fd, struct addrinfo *ai)
 {
     fd_set_nonblock(fd);
 
-    if (gt.mptcp)
+    if (gt.mptcp && access("/proc/sys/net/mptcp/mptcp_enabled", F_OK) == 0)
         sk_set_mptcp(fd);
 
     int ret = connect(fd, ai->ai_addr, ai->ai_addrlen);
@@ -889,7 +892,7 @@ static void gt_print_hdr (struct ip_common *ic, uint8_t *data)
 
     uint8_t *const packet = &data[ic->hdr_size];
 
-    if (ic->proto==IPPROTO_TCP) {
+    if (ic->proto==IPPROTO_TCP || ic->proto==IPPROTO_MPTCP) {
         struct tcphdr tcp;
 
         memcpy(&tcp, packet, sizeof(tcp));
@@ -937,7 +940,7 @@ static void gt_print_hdr (struct ip_common *ic, uint8_t *data)
 
 static int gt_track (uint8_t **db, struct ip_common *ic, uint8_t *data, int rev)
 {
-    if (ic->proto!=IPPROTO_TCP)
+    if (ic->proto!=IPPROTO_TCP && ic->proto!=IPPROTO_MPTCP)
         return 0;
 
     if (!ic->hdr_size)
@@ -1315,15 +1318,7 @@ int main (int argc, char **argv)
 
     int chacha = option_is_set(opts, "chacha20");
 
-    if (option_is_set(opts, "mptcp")) {
-        if (access("/proc/sys/net/mptcp/mptcp_enabled", F_OK) == 0) {
-            gt_log("MPTCP out-of-tree enabled\n");
-            gt.mptcp = 1;
-        } else {
-            gt_log("MPTCP upstream enabled\n");
-            gt.mptcpu = 1;
-        }
-    }
+    gt.mptcp = option_is_set(opts, "mptcp");
 
     if (sodium_init()==-1) {
         gt_log("libsodium initialization has failed\n");
@@ -1391,8 +1386,8 @@ int main (int argc, char **argv)
     buffer_setup(&sock.read,  NULL, buffer_size);
 
     int fd = -1;
-    if (gt.mptcpu)
-        ai->ai_protocol = IPPROTO_TCP + 256;
+    if (gt.mptcp && access("/proc/sys/net/mptcp/enabled", F_OK) == 0)
+        ai->ai_protocol = IPPROTO_MPTCP;
 
     if (listener) {
         fd = sk_create(ai, sk_listen);
