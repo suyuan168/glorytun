@@ -46,12 +46,16 @@
 #endif
 
 #define GT_MTU_MAX   (1500)
-#define GT_PKT_MAX   (32*1024)
+#define GT_PKT_MAX   (64*1024)
 #define GT_TUNR_SIZE (GT_PKT_MAX-16-2)
 #define GT_TUNW_SIZE (GT_PKT_MAX)
 
 #define GT_ABYTES    (16)
 #define GT_KEYBYTES  (32)
+
+#ifndef IPPROTO_MPTCP
+#define IPPROTO_MPTCP 262
+#endif
 
 static struct {
     volatile sig_atomic_t quit;
@@ -210,7 +214,7 @@ static int sk_listen (int fd, struct addrinfo *ai)
 {
     sk_set_int(fd, sk_reuseaddr, 1);
 
-    if (gt.mptcp)
+    if (gt.mptcp && access("/proc/sys/net/mptcp/mptcp_enabled", F_OK) == 0)
         sk_set_mptcp(fd);
 
     if (bind(fd, ai->ai_addr, ai->ai_addrlen)==-1) {
@@ -237,7 +241,7 @@ static int sk_connect (int fd, struct addrinfo *ai)
 {
     fd_set_nonblock(fd);
 
-    if (gt.mptcp)
+    if (gt.mptcp && access("/proc/sys/net/mptcp/mptcp_enabled", F_OK) == 0)
         sk_set_mptcp(fd);
 
     int ret = connect(fd, ai->ai_addr, ai->ai_addrlen);
@@ -888,7 +892,7 @@ static void gt_print_hdr (struct ip_common *ic, uint8_t *data)
 
     uint8_t *const packet = &data[ic->hdr_size];
 
-    if (ic->proto==IPPROTO_TCP) {
+    if (ic->proto==IPPROTO_TCP || ic->proto==IPPROTO_MPTCP) {
         struct tcphdr tcp;
 
         memcpy(&tcp, packet, sizeof(tcp));
@@ -936,7 +940,7 @@ static void gt_print_hdr (struct ip_common *ic, uint8_t *data)
 
 static int gt_track (uint8_t **db, struct ip_common *ic, uint8_t *data, int rev)
 {
-    if (ic->proto!=IPPROTO_TCP)
+    if (ic->proto!=IPPROTO_TCP && ic->proto!=IPPROTO_MPTCP)
         return 0;
 
     if (!ic->hdr_size)
@@ -1382,6 +1386,8 @@ int main (int argc, char **argv)
     buffer_setup(&sock.read,  NULL, buffer_size);
 
     int fd = -1;
+    if (gt.mptcp && access("/proc/sys/net/mptcp/enabled", F_OK) == 0)
+        ai->ai_protocol = IPPROTO_MPTCP;
 
     if (listener) {
         fd = sk_create(ai, sk_listen);
