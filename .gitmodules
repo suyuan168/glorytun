@@ -1,7 +1,7 @@
 [submodule "mud"]
 	path = mud
-	url = https://hub.55860.com/suyuan168/mud.git
+	url = https://github.com/suyuan168/mud.git
 	ignore = dirty
 [submodule "argz"]
 	path = argz
-	url = https://hub.55860.com/suyuan168/argz.git
+	url = https://github.com/suyuan168/argz.git
