@@ -214,7 +214,7 @@ static int sk_listen (int fd, struct addrinfo *ai)
 {
     sk_set_int(fd, sk_reuseaddr, 1);
 
-    if (gt.mptcp && access("/proc/sys/net/mptcp/mptcp_enabled", F_OK) == 0)
+    if (gt.mptcp)
         sk_set_mptcp(fd);
 
     if (bind(fd, ai->ai_addr, ai->ai_addrlen)==-1) {
@@ -241,7 +241,7 @@ static int sk_connect (int fd, struct addrinfo *ai)
 {
     fd_set_nonblock(fd);
 
-    if (gt.mptcp && access("/proc/sys/net/mptcp/mptcp_enabled", F_OK) == 0)
+    if (gt.mptcp)
         sk_set_mptcp(fd);
 
     int ret = connect(fd, ai->ai_addr, ai->ai_addrlen);
@@ -1386,7 +1386,7 @@ int main (int argc, char **argv)
     buffer_setup(&sock.read,  NULL, buffer_size);
 
     int fd = -1;
-    if (gt.mptcp && access("/proc/sys/net/mptcp/enabled", F_OK) == 0)
+    if (gt.mptcp)
         ai->ai_protocol = IPPROTO_MPTCP;
 
     if (listener) {
